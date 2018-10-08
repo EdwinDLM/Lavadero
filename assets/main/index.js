@@ -1,9 +1,11 @@
 conectedToFirebase();
 var dataGrafica = []
+var dataGraficaTProm = []
 database = firebase.database();
 var lavados = firebase.database().ref('Lavados/');
 lavados.on('value',function(snapshot) {
-  dataGrafica.length = 0
+  dataGrafica.length = 0;
+  dataGraficaTProm.length = 0;
   var data  = snapshot.val();
   var promediot = promedioTiempo(data);
   var promedioA = promedioAgua(data);
@@ -20,15 +22,72 @@ lavados.on('value',function(snapshot) {
   $("#PromedioJ").attr("data-end", promedioJ)
   $("#PromedioJ").text(promedioJ.toFixed(2) + " gr");
 
-  $("#totalV").text(data.length-1);
-  dataGrafica.push({name: 'Camion', y: CantCamion})
-  dataGrafica.push({name: 'Camioneta',y: CantCamioneta})
-  dataGrafica.push({name: 'Automovil',y: CantAutomovil})
-  graficaTipoVehiculo(dataGrafica)
+  var promTAuto = promedioTiempoAutomovil(data);
+  $("#PTAutomovil").text(promTAuto.toFixed(2) + " Min");
+  var promTCamion= promedioTiempoCamion(data);
+  $("#PTCamion").text(promTCamion.toFixed(2) + " Min");
+  var promTCamioneta= promedioTiempoCamioneta(data);
+  $("#PTCamioneta").text(promTCamioneta.toFixed(2) + " Min");
 
+  dataGrafica.push({name: 'Camion', y: CantCamion});
+  dataGrafica.push({name: 'Camioneta',y: CantCamioneta});
+  dataGrafica.push({name: 'Automovil',y: CantAutomovil});
+  graficaTipoVehiculo(dataGrafica);
+
+  dataGraficaTProm.push({name: 'Automovil', data: [promTAuto]});
+  dataGraficaTProm.push({name: 'Camion', data: [promTCamion]});
+  dataGraficaTProm.push({name: 'Camioneta', data: [promTCamioneta]});
+  graficaPromedioTiempo(dataGraficaTProm);
 
 // end firebase
 });
+
+//promedio tiempo Camion
+function promedioTiempoCamioneta(data){
+  var sum = 0;
+  var cant = 0;
+  var prom = 0;
+  for(key in data){
+    if(data[key].Tipo=="Camioneta" ){
+      sum = sum + data[key].Tiempo;
+      cant = cant +1;
+    }
+  }
+  prom = (sum/cant);
+  return prom;
+}
+
+//promedio tiempo Camion
+function promedioTiempoCamion(data){
+  var sum = 0;
+  var cant = 0;
+  var prom = 0;
+  for(key in data){
+    if(data[key].Tipo=="Camion" ){
+      sum = sum + data[key].Tiempo;
+      cant = cant +1;
+    }
+  }
+  prom = (sum/cant);
+  return prom;
+}
+
+//promedio tiempo Automovil
+function promedioTiempoAutomovil(data){
+  var sum = 0;
+  var cant = 0;
+  var prom = 0;
+  for(key in data){
+    if(data[key].Tipo=="Automovil" ){
+      sum = sum + data[key].Tiempo;
+      cant = cant +1;
+    }
+  }
+  prom = (sum/cant);
+  return prom;
+}
+
+
 
 //funcion que cuenta el total de Automovil
 function contarAutomovil(data){
@@ -96,7 +155,48 @@ function promedioTiempo(data){
   return prom;
 }
 
+//funcion grafica promedio tiempo
+function graficaPromedioTiempo(dataGraficaTProm){
+var grafica = Highcharts.chart('promtiempog', {
+    chart: {
+        type: 'column',
+        options3d: {
+            enabled: true,
+            alpha: 10,
+            beta: 25,
+            depth: 70
+        }
+    },
+    title: {
+        text: ''
+    },
+    subtitle: {
+        text: ''
+    },
+    plotOptions: {
+        column: {
+            depth: 25
+        }
+    },
+    xAxis: {
+        categories: [null],
+        labels: {
+            skew3d: true,
+            style: {
+                fontSize: '1px'
+            }
+        }
+    },
+    yAxis: {
+        title: {
+            text: null
+        }
+    },
+    series: dataGraficaTProm
+});
+}
 
+//funcion grafica tipo vehiculo
 function graficaTipoVehiculo(dataGrafica){
   var grafica = Highcharts.chart('tipopiechart', {
         chart: {
